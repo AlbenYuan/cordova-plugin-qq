@@ -97,8 +97,8 @@ NSString *QQ_LOGIN_NETWORK_ERROR = @"QQ login network error";
     self.callback = command.callbackId;
     NSDictionary *args = [command.arguments objectAtIndex:0];
     if (args) {
-        QQApiNewsObject *newsObj = [self makeNewsObject:args with:2];
-        SendMessageToQQReq *req = [SendMessageToQQReq reqWithContent:newsObj];
+        QQApiImageArrayForQZoneObject *img = [self makeQQApiImageArrayForQZoneObject:args with:2];
+        SendMessageToQQReq* req = [SendMessageToQQReq reqWithContent:img];
         QQApiSendResultCode sent = [QQApiInterface SendReqToQZone:req];
         [self handleSendResult:sent];
     }
@@ -149,12 +149,50 @@ NSString *QQ_LOGIN_NETWORK_ERROR = @"QQ login network error";
     else if (shareType == 2) {
         previewImageUrl = [[args objectForKey:@"imageUrl"] objectAtIndex:0];
     }
+    QQApiNewsObject *newsObj;
+    if ([previewImageUrl hasPrefix:@"http://"] || [previewImageUrl hasPrefix:@"https://"])
+    {
+        newsObj=[QQApiNewsObject
+                 objectWithURL:[NSURL URLWithString:url]
+                 title:[args objectForKey:@"title"]
+                 description:[args objectForKey:@"description"]
+                 previewImageURL:[NSURL URLWithString:previewImageUrl]];
+    }else{
+        newsObj=[QQApiNewsObject
+                 objectWithURL:[NSURL URLWithString:url]
+                 title:[args objectForKey:@"title"]
+                 description:[args objectForKey:@"description"]
+                 previewImageData:[NSData dataWithContentsOfFile:previewImageUrl]];
+    }
 
-    QQApiNewsObject *newsObj = [QQApiNewsObject
-            objectWithURL:[NSURL URLWithString:url]
-                    title:[args objectForKey:@"title"]
-              description:[args objectForKey:@"description"]
-          previewImageURL:[NSURL URLWithString:previewImageUrl]];
+    return newsObj;
+}
+
+/**
+ *  @param args
+ *  @param shareType 分享的类型
+ *
+ *  @return QQApiImageArrayForQZoneObject
+ */
+- (QQApiImageArrayForQZoneObject *)makeQQApiImageArrayForQZoneObject:(NSDictionary *)args with:(int)shareType {
+    if (!args) {
+        return nil;
+    }
+    NSString *previewImageUrl;
+    if (shareType == 1) {
+        previewImageUrl = [args objectForKey:@"imageUrl"];
+    }
+    else if (shareType == 2) {
+        previewImageUrl = [[args objectForKey:@"imageUrl"] objectAtIndex:0];
+    }
+    QQApiImageArrayForQZoneObject *newsObj;
+    NSMutableArray *photoArray = [NSMutableArray array];
+    [photoArray addObject:[NSData dataWithContentsOfFile:previewImageUrl]];
+    newsObj=[QQApiImageArrayForQZoneObject
+             objectWithimageDataArray:photoArray
+             title:[args objectForKey:@"title"]];
+
+
     return newsObj;
 }
 
