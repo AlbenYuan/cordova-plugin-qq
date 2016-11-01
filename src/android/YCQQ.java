@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 public class YCQQ extends CordovaPlugin {
 
+    private static final String TAG = YCQQ.class.getSimpleName();
+
     private static Tencent mTencent;
     private CallbackContext currentCallbackContext;
     private String APP_ID;
@@ -184,24 +186,31 @@ public class YCQQ extends CordovaPlugin {
         JSONArray imgUrl = json.getJSONArray("imageUrl");
         for (int i = 0; i < imgUrl.length(); i++) {
             if (imgUrl.get(i) != null && !imgUrl.get(i).toString().equalsIgnoreCase("")) {
-                if (imgUrl.get(i).toString().startsWith("http://") || imgUrl.get(i).toString().startsWith("https://")) {
-                    imageUrls.add(imgUrl.get(i).toString());
-                }
+//                if (imgUrl.get(i).toString().startsWith("http://") || imgUrl.get(i).toString().startsWith("https://")) {
+                imageUrls.add(imgUrl.get(i).toString());
+//                }
             }
         }
         final Bundle params = new Bundle();
-        params.putInt(QzoneShare.SHARE_TO_QZONE_KEY_TYPE, QzoneShare.SHARE_TO_QZONE_TYPE_IMAGE_TEXT);
-        params.putString(QzoneShare.SHARE_TO_QQ_TITLE, json.getString("title"));
-        params.putString(QzoneShare.SHARE_TO_QQ_SUMMARY, json.getString("description"));
-        params.putString(QzoneShare.SHARE_TO_QQ_TARGET_URL, json.getString("url"));
-        params.putStringArrayList(QzoneShare.SHARE_TO_QQ_IMAGE_URL, imageUrls);
+
+        params.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE, QQShare.SHARE_TO_QQ_TYPE_IMAGE);
+//        params.putString(QQShare.SHARE_TO_QQ_TITLE, json.getString("title"));
+//        params.putString(QQShare.SHARE_TO_QQ_SUMMARY, json.getString("description"));
+//        params.putString(QQShare.SHARE_TO_QQ_TARGET_URL, json.getString("url"));
+        params.putString(QQShare.SHARE_TO_QQ_IMAGE_LOCAL_URL, imageUrls.get(0));
+
+//        params.putInt(QzoneShare.SHARE_TO_QZONE_KEY_TYPE, QzoneShare.SHARE_TO_QZONE_TYPE_IMAGE_TEXT);
+//        params.putString(QzoneShare.SHARE_TO_QQ_TITLE, json.getString("title"));
+//        params.putString(QzoneShare.SHARE_TO_QQ_SUMMARY, json.getString("description"));
+//        params.putString(QzoneShare.SHARE_TO_QQ_TARGET_URL, json.getString("url"));
+//        params.putStringArrayList(QzoneShare.SHARE_TO_QQ_IMAGE_URL, imageUrls);
         this.cordova.setActivityResultCallback(this);
         this.cordova.getActivity().runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                mTencent.shareToQzone(YCQQ.this.cordova.getActivity(), params,
-                        qZoneShareListener);
+                mTencent.shareToQQ(YCQQ.this.cordova.getActivity(), params, qqShareListener);
+//                mTencent.shareToQzone(YCQQ.this.cordova.getActivity(), params, qZoneShareListener);
             }
         });
         return true;
@@ -408,7 +417,7 @@ public class YCQQ extends CordovaPlugin {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        mTencent.onActivityResultData(requestCode,resultCode,intent,loginListener);
+        mTencent.onActivityResultData(requestCode, resultCode, intent, loginListener);
         if (requestCode == Constants.REQUEST_API) {
             if (resultCode == Constants.REQUEST_LOGIN) {
                 Tencent.handleResultData(intent, loginListener);
