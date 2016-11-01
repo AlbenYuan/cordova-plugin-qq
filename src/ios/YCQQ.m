@@ -97,9 +97,15 @@ NSString *QQ_LOGIN_NETWORK_ERROR = @"QQ login network error";
     self.callback = command.callbackId;
     NSDictionary *args = [command.arguments objectAtIndex:0];
     if (args) {
-        QQApiImageArrayForQZoneObject *img = [self makeQQApiImageArrayForQZoneObject:args with:2];
-        SendMessageToQQReq* req = [SendMessageToQQReq reqWithContent:img];
-        QQApiSendResultCode sent = [QQApiInterface SendReqToQZone:req];
+//        QQApiImageArrayForQZoneObject *img = [self makeQQApiImageArrayForQZoneObject:args with:2];
+//        SendMessageToQQReq *req = [SendMessageToQQReq reqWithContent:img];
+//        QQApiSendResultCode sent = [QQApiInterface SendReqToQZone:req];
+
+
+        QQApiImageObject *img = [self makeQQApiImageObject:args with:2];
+        SendMessageToQQReq *req = [SendMessageToQQReq reqWithContent:img];
+        QQApiSendResultCode sent = [QQApiInterface sendReq:req];
+
         [self handleSendResult:sent];
     }
     else {
@@ -194,6 +200,33 @@ NSString *QQ_LOGIN_NETWORK_ERROR = @"QQ login network error";
 
 
     return newsObj;
+}
+
+/**
+ *  @param args
+ *  @param shareType 分享的类型
+ *
+ *  @return QQApiImageObject
+ */
+- (QQApiImageObject *)makeQQApiImageObject:(NSDictionary *)args with:(int)shareType {
+    if (!args) {
+        return nil;
+    }
+    NSString *previewImageUrl;
+    if (shareType == 1) {
+        previewImageUrl = [args objectForKey:@"imageUrl"];
+    }
+    else if (shareType == 2) {
+        previewImageUrl = [[args objectForKey:@"imageUrl"] objectAtIndex:0];
+    }
+    NSData *data = [NSData dataWithContentsOfFile:previewImageUrl];
+
+    QQApiImageObject *imgObj =
+    [QQApiImageObject objectWithData:data
+                    previewImageData:data
+                               title:[args objectForKey:@"title"]
+                        description :[args objectForKey:@"description"]];
+    return imgObj;
 }
 
 /**
